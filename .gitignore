@@ -1,0 +1,30 @@
+# Live state: Matrix access token, E2EE keys (nio DB), logs, WeeChat config
+# incl. sec.conf -- never commit
+data/
+# /secure passphrase (compose secret)
+secrets/
+# Backups of data/ + secrets/ (tar czf weechat-backup.tgz data secrets)
+*.tgz
+*.tar
+*.tar.gz
+# Accidental key/token exports
+*.key
+*.pem
+*.txt
+.env
+.env.*
+
+# Personal notes and AI session context (account details, device IDs, history)
+AGENTS.md
+CLAUDE.md
+FINDINGS.md
+GO-PLUGIN-PLAN.md
+# Local patch audit/history
+PATCHES.md
+*.local.md
+.claude/
+
+# OS / editor
+.DS_Store
+*.swp
+*~

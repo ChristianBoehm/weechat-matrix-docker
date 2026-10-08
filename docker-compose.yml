@@ -1,0 +1,24 @@
+services:
+  weechat:
+    build:
+      context: .
+      additional_contexts:
+        fork: https://github.com/ChristianBoehm/weechat-matrix.git#0.3.5   # script code, pinned signed tag
+    image: weechat-matrix:alpine
+    stdin_open: true
+    tty: true
+    environment:
+      # on|off: encrypt for new devices of other users without asking (like Element);
+      # remove the line to leave the option as set in matrix.conf
+      MATRIX_AUTO_IGNORE_NEW_DEVICES: "on"
+    volumes:
+      - ./data:/home/weechat
+    ports:
+      - "127.0.0.1:8443:8444"
+    secrets:
+      - weechat_passphrase   # /run/secrets/weechat_passphrase, read by sec.crypt.passphrase_command
+    restart: unless-stopped
+
+secrets:
+  weechat_passphrase:
+    file: ./secrets/weechat_passphrase

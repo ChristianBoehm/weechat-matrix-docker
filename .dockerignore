@@ -1,0 +1,10 @@
+# Keep live state and credentials out of the build context
+data
+secrets
+*.tgz
+*.tar
+*.tar.gz
+.env
+.env.*
+.git
+.DS_Store
