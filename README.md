@@ -50,3 +50,9 @@ GitHub.
 created locally and are ignored by git and by the Docker build context.
 Back them up together while the container is stopped:
 `tar czf weechat-backup.tgz data secrets`.
+
+## License
+
+[MIT](LICENSE) for the files in this repository. The weechat-matrix script
+installed into the image is ISC-licensed (upstream) — see the
+[fork](https://github.com/ChristianBoehm/weechat-matrix).
