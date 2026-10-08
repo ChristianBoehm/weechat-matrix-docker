@@ -71,6 +71,15 @@ Compose plugin).
 
 **1. Clone and create the passphrase**
 
+WeeChat can store sensitive values (your Matrix password, your recovery key)
+as `/secure` data in `sec.conf`. Without a passphrase they are saved there in
+plain text. The passphrase is a random string WeeChat uses to encrypt them.
+It lives in `secrets/` on the host, outside `data/`, and is handed to the
+container as a Compose secret, so WeeChat can unlock the data on every start
+without asking. You never type it yourself — but back it up: without it,
+the `/secure` data can't be decrypted. The file must exist before the first
+`docker compose up`, since Compose refuses to start with a missing secret.
+
 ```bash
 git clone https://github.com/ChristianBoehm/weechat-matrix-docker.git
 cd weechat-matrix-docker
