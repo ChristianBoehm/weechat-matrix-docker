@@ -2,8 +2,6 @@ services:
   weechat:
     build:
       context: .
-      additional_contexts:
-        fork: https://github.com/ChristianBoehm/weechat-matrix.git#0.3.5   # script code, pinned signed tag
     image: weechat-matrix:alpine
     stdin_open: true
     tty: true

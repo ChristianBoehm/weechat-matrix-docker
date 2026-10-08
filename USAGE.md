@@ -5,7 +5,7 @@
 | File | Purpose |
 |---|---|
 | `Dockerfile` | `alpine:3.22` (multi-arch, native on Apple Silicon) + weechat 4.6.3, weechat-python, weechat-matrix (for its deps), socat; script code copied from the fork; non-root `weechat` user; config autosave script; runtime entrypoint (autoload symlinks, socat SSO bridge) |
-| `docker-compose.yml` | Mounts `./data` over the user's home, TTY-enabled, SSO port mapping, `restart: unless-stopped`, build context `fork` = fork tag `0.3.5` from GitHub |
+| `docker-compose.yml` | Mounts `./data` over the user's home, TTY-enabled, SSO port mapping, `restart: unless-stopped`, `/secure` passphrase secret |
 | `.gitignore` / `.dockerignore` | Keep `data/`, `secrets/`, backups and personal notes out of git and out of the build context |
 | `secrets/weechat_passphrase` | *(not in git, created during setup)* random passphrase for WeeChat's `/secure` data (compose secret, read by `sec.crypt.passphrase_command`) |
 | `data/` | *(not in git, created on first start)* all persisted WeeChat state: config, E2EE keys, Matrix access token, logs |
@@ -14,12 +14,14 @@ Image: `weechat-matrix:alpine` (~188MB).
 
 **Script source (maintained fork):** [`ChristianBoehm/weechat-matrix`](https://github.com/ChristianBoehm/weechat-matrix).
 Upstream `poljar/weechat-matrix` is orphaned (last commit 2023-07-23 = the exact
-commit Alpine pins). The fork (tag `0.3.5`, signed) carries the
+commit Alpine pins). The fork (signed release tags) carries the
 session-persistence, python-future and shebang fixes plus self cross-signing,
 key backup restore and `auto_ignore_new_devices`.
-**The image is built from the pinned tag** (compose build context
-`fork: https://github.com/ChristianBoehm/weechat-matrix.git#0.3.5`) — BuildKit
-fetches it from GitHub, so no local clone is needed.
+**The image is built from the pinned tag:** the `Dockerfile` stage `fork`
+fetches `https://github.com/ChristianBoehm/weechat-matrix.git#${WEECHAT_MATRIX_VERSION}`
+with `ADD --checksum=${WEECHAT_MATRIX_COMMIT}`, so the build fails if the tag
+ever points to a different commit. No local clone is needed. Both values are
+`ARG`s at the top of the `Dockerfile` — the only place the version is set.
 
 ## First run
 
@@ -182,13 +184,23 @@ docker compose up -d          # recreates the container on the new image
 
 Image is replaced, `data/` is untouched (config, keys and access token persist).
 
-To follow fork updates (the image copies the script from the pinned fork tag):
+Releases of this repo are tagged `<script version>-r<n>` (signed), e.g.
+`0.3.5-r1`. To update: `git pull` (or `git checkout <tag>`), then build and
+`up -d` as above.
+
+**Maintainers — new fork release:**
 
 ```bash
-# 1. docker-compose.yml: change fork: ...weechat-matrix.git#<new tag>
-# 2. Dockerfile: bump the asserted WEECHAT_SCRIPT_VERSION to the same version
-docker compose build && docker compose up -d
+# 1. Dockerfile: set WEECHAT_MATRIX_VERSION=<tag> and
+#    WEECHAT_MATRIX_COMMIT=$(git -C <fork clone> rev-parse '<tag>^{commit}')
+# 2. README.md: update the weechat-matrix badge
+docker compose build && docker compose up -d   # build checks tag, commit and script version
+# 3. commit, then: git tag -s <tag>-r1 -m "..."
 ```
+
+For testing an unpushed fork change, replace the `fork` stage with a local
+clone (the version check still applies):
+`docker buildx build --load --build-context fork=<path to fork clone> -t weechat-matrix:alpine .`
 
 ## Notes
 

@@ -46,7 +46,7 @@ flowchart LR
         helper["SSO helper 127.0.0.1:8443"]
         weechat["WeeChat + weechat-matrix"]
     end
-    github["GitHub: fork tag 0.3.5"]
+    github["GitHub: weechat-matrix fork"]
     hs["Matrix homeserver"]
 
     browser -- "127.0.0.1:8443" --> socat --> helper -- "login token" --> weechat
@@ -61,8 +61,9 @@ flowchart LR
   container.
 - **State:** `./data` is mounted as the container's home: config, encryption
   keys, access token and logs all live on the host and survive rebuilds.
-- **Build:** the script is fetched from the fork's signed tag, so the repo
-  builds anywhere without a local checkout.
+- **Build:** the `Dockerfile` fetches the script from the fork's signed tag
+  and checks that the tag points to the expected commit, so the repo builds
+  anywhere without a local checkout.
 
 ## Quick start
 
@@ -83,6 +84,7 @@ the `/secure` data can't be decrypted. The file must exist before the first
 ```bash
 git clone https://github.com/ChristianBoehm/weechat-matrix-docker.git
 cd weechat-matrix-docker
+git checkout <tag>         # optional: pin a release (git tag -l), else main
 
 mkdir -m 700 secrets data
 openssl rand -base64 33 > secrets/weechat_passphrase
@@ -168,7 +170,7 @@ The recovery key is in Element under Settings → Security & Privacy. Details in
 |---|---|---|
 | Trust new devices of other users automatically | `MATRIX_AUTO_IGNORE_NEW_DEVICES` in `docker-compose.yml` (`on` / `off`; remove the line to keep the value from `matrix.conf`) | `on` |
 | SSO callback port | `ports:` in `docker-compose.yml` (bound to localhost only) | `127.0.0.1:8443` |
-| Script version | fork tag in `additional_contexts` + version check in the `Dockerfile` | `0.3.5` |
+| Script version | `WEECHAT_MATRIX_VERSION` + `WEECHAT_MATRIX_COMMIT` at the top of the `Dockerfile` | see badge |
 
 ## Data and backup
 
@@ -209,16 +211,19 @@ More in [USAGE.md](USAGE.md#persistence--backup).
 - No WeeChat relay by default (add `weechat-relay` to the `Dockerfile` to use
   a phone or web client).
 
-## Upgrading
+## Releases and upgrading
+
+Releases are tagged `<script version>-r<n>`, like Alpine packages:
+`0.3.5-r1` is the first release with weechat-matrix 0.3.5, `0.3.5-r2` changes
+only this setup, `0.3.6-r1` brings a new script version. Tags are signed.
 
 ```bash
+git pull                   # or: git fetch --tags && git checkout <tag>
 docker compose build --pull
 docker compose up -d
 ```
 
-`data/` is untouched. For a new script release, change the tag in
-`docker-compose.yml` (`…weechat-matrix.git#<tag>`) and the version check in the
-`Dockerfile`, then build again. See [USAGE.md](USAGE.md#upgrade).
+`data/` is untouched. See [USAGE.md](USAGE.md#upgrade).
 
 ## Credits and license
 
